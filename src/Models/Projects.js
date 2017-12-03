@@ -12,6 +12,7 @@ const ProjectServices = require('./ProjectServices');
 const ProjectTriggers = require('./ProjectTriggers');
 const ProjectRunners = require('./ProjectRunners');
 const ProjectPipelines = require('./ProjectPipelines');
+const ProjectProtectedBranches = require('./ProjectProtectedBranches');
 const ResourceCustomAttributes = require('./ResourceCustomAttributes');
 const ResourceMembers = require('./ResourceMembers');
 const ResourceAccessRequests = require('./ResourceAccessRequests');
@@ -20,115 +21,116 @@ const ResourceNotes = require('./ResourceNotes');
 
 
 class Projects extends BaseModel {
-  constructor(...args) {
-    super(...args);
+    constructor(...args) {
+        super(...args);
 
-    this.hooks = new ProjectHooks(...args);
-    this.issues = new ProjectIssues(...args);
-    this.labels = new ProjectLabels(...args);
-    this.repository = new ProjectRepository(...args);
-    this.deployKeys = new ProjectDeployKeys(...args);
-    this.mergeRequests = new ProjectMergeRequests(...args);
-    this.services = new ProjectServices(...args);
-    this.triggers = new ProjectTriggers(...args);
-    this.pipelines = new ProjectPipelines(...args);
-    this.runners = new ProjectRunners(...args);
-    this.customAttributes = new ResourceCustomAttributes('projects', ...args);
-    this.members = new ResourceMembers('projects', ...args);
-    this.accessRequests = new ResourceAccessRequests('projects', ...args);
-    this.milestones = new ResourceMilestones('projects', ...args);
-    this.snippets = new ResourceNotes('projects', 'snippets', ...args);
-  }
-
-  all(options = {}) {
-    return this.get('projects', options);
-  }
-
-  allAdmin(options = {}) {
-    return this.get('projects/all', options);
-  }
-
-  create(options = {}) {
-    if (options.userId) {
-      const uId = Utils.parse(options.userId);
-
-      return this.post(`projects/user/${uId}`, options);
+        this.hooks = new ProjectHooks(...args);
+        this.issues = new ProjectIssues(...args);
+        this.labels = new ProjectLabels(...args);
+        this.repository = new ProjectRepository(...args);
+        this.deployKeys = new ProjectDeployKeys(...args);
+        this.mergeRequests = new ProjectMergeRequests(...args);
+        this.services = new ProjectServices(...args);
+        this.triggers = new ProjectTriggers(...args);
+        this.pipelines = new ProjectPipelines(...args);
+        this.runners = new ProjectRunners(...args);
+        this.protectedBranches = new ProjectProtectedBranches(...args);
+        this.customAttributes = new ResourceCustomAttributes('projects', ...args);
+        this.members = new ResourceMembers('projects', ...args);
+        this.accessRequests = new ResourceAccessRequests('projects', ...args);
+        this.milestones = new ResourceMilestones('projects', ...args);
+        this.snippets = new ResourceNotes('projects', 'snippets', ...args);
     }
 
-    return this.post('projects', options);
-  }
+    all(options = {}) {
+        return this.get('projects', options);
+    }
 
-  edit(projectId, options = {}) {
-    const pId = Utils.parse(projectId);
+    allAdmin(options = {}) {
+        return this.get('projects/all', options);
+    }
 
-    return this.put(`projects/${pId}`, options);
-  }
+    create(options = {}) {
+        if (options.userId) {
+            const uId = Utils.parse(options.userId);
 
-  fork(projectId, options = {}) {
-    const pId = Utils.parse(projectId);
+            return this.post(`projects/user/${uId}`, options);
+        }
 
-    return this.post(`projects/${pId}/fork`, options);
-  }
+        return this.post('projects', options);
+    }
 
-  remove(projectId) {
-    const pId = Utils.parse(projectId);
+    edit(projectId, options = {}) {
+        const pId = Utils.parse(projectId);
 
-    return this.delete(`projects/${pId}`);
-  }
+        return this.put(`projects/${pId}`, options);
+    }
 
-  search(projectName) {
-    return this.get('projects', { search: projectName });
-  }
+    fork(projectId, options = {}) {
+        const pId = Utils.parse(projectId);
 
-  share(projectId, groupId, groupAccess, options) {
-    const pId = Utils.parse(projectId);
+        return this.post(`projects/${pId}/fork`, options);
+    }
 
-    if (!groupId || !groupAccess) throw new Error('Missing required arguments');
+    remove(projectId) {
+        const pId = Utils.parse(projectId);
 
-    options.group_id = groupId;
-    options.group_access = groupAccess;
+        return this.delete(`projects/${pId}`);
+    }
 
-    return this.post(`projects/${pId}/share`, options);
-  }
+    search(projectName) {
+        return this.get('projects', { search: projectName });
+    }
 
-  show(projectId) {
-    const pId = Utils.parse(projectId);
+    share(projectId, groupId, groupAccess, options) {
+        const pId = Utils.parse(projectId);
 
-    return this.get(`projects/${pId}`);
-  }
+        if (!groupId || !groupAccess) throw new Error('Missing required arguments');
 
-  star(projectId) {
-    const pId = Utils.parse(projectId);
+        options.group_id = groupId;
+        options.group_access = groupAccess;
 
-    return this.post(`projects/${pId}/star`);
-  }
+        return this.post(`projects/${pId}/share`, options);
+    }
 
-  statuses(projectId, sha, state, options = {}) {
-    const pId = Utils.parse(projectId);
+    show(projectId) {
+        const pId = Utils.parse(projectId);
 
-    return this.post(`projects/${pId}/statuses/${sha}`, Object.assign({ state }, options));
-  }
+        return this.get(`projects/${pId}`);
+    }
 
-  unstar(projectId) {
-    const pId = Utils.parse(projectId);
+    star(projectId) {
+        const pId = Utils.parse(projectId);
 
-    return this.post(`projects/${pId}/unstar`);
-  }
+        return this.post(`projects/${pId}/star`);
+    }
 
-  upload(projectId, filePath, { fileName = Path.basename(filePath) } = {}) {
-    const pId = Utils.parse(projectId);
-    const file = Fs.readFileSync(filePath);
+    statuses(projectId, sha, state, options = {}) {
+        const pId = Utils.parse(projectId);
 
-    return this.postForm(`projects/${pId}/uploads`, {
-      file: {
-        value: file,
-        options: {
-          filename: fileName,
-          contentType: 'application/octet-stream',
-        },
-      },
-    });
-  }
+        return this.post(`projects/${pId}/statuses/${sha}`, Object.assign({ state }, options));
+    }
+
+    unstar(projectId) {
+        const pId = Utils.parse(projectId);
+
+        return this.post(`projects/${pId}/unstar`);
+    }
+
+    upload(projectId, filePath, { fileName = Path.basename(filePath) } = {}) {
+        const pId = Utils.parse(projectId);
+        const file = Fs.readFileSync(filePath);
+
+        return this.postForm(`projects/${pId}/uploads`, {
+            file: {
+                value: file,
+                options: {
+                    filename: fileName,
+                    contentType: 'application/octet-stream',
+                },
+            },
+        });
+    }
 }
 
 module.exports = Projects;
