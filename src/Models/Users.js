@@ -1,11 +1,13 @@
 const BaseModel = require('./BaseModel');
 const UserKeys = require('./UserKeys');
 const Utils = require('../Utils');
+const ResourceCustomAttributes = require('./ResourceCustomAttributes');
 
 class Users extends BaseModel {
   constructor(...args) {
     super(...args);
 
+    this.customAttributes = new ResourceCustomAttributes('users', ...args);
     this.keys = UserKeys;
   }
 
@@ -13,18 +15,12 @@ class Users extends BaseModel {
     return this.get('users', options);
   }
 
-  current() {
-    return this.get('user');
-  }
-
-  show(userId) {
-    const uId = Utils.parse(userId);
-
-    return this.get(`users/${uId}`);
-  }
-
   create(options = {}) {
     return this.post('users', options);
+  }
+
+  current() {
+    return this.get('user');
   }
 
   session(email, password) {
@@ -38,6 +34,12 @@ class Users extends BaseModel {
     return this.get('users', {
       search: emailOrUsername,
     });
+  }
+
+  show(userId) {
+    const uId = Utils.parse(userId);
+
+    return this.get(`users/${uId}`);
   }
 }
 
