@@ -14,7 +14,7 @@ class ProjectProtectedBranches extends BaseModel {
     }
 
     protect(projectId, options = {}) {
-        const [pId, bId] = [projectId, branchId].map(Utils.parse);
+        const [pId] = [projectId].map(Utils.parse);
 
         return this.post(`projects/${pId}/protected_branches`, options);
     }
